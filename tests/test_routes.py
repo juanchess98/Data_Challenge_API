@@ -36,7 +36,7 @@ def test_populate_department(client):
     assert response.json.get(
         'message') == 'Data inserted into table Departments successfully', "Unexpected response message."
     
-def test_populate_jobs(client):
+def test_populate_job(client):
     # Example simplified payload; adjust as necessary for your endpoint's expected input
     payload = {
     "csv_file_path": "app/data/jobs.csv",
@@ -55,3 +55,26 @@ def test_populate_jobs(client):
     assert response.status_code == 201, "Expected HTTP 201 status code for successful insert."
     assert response.json.get(
         'message') == 'Data inserted into table Jobs successfully', "Unexpected response message."
+    
+def test_populate_employee(client):
+    # Example simplified payload; adjust as necessary for your endpoint's expected input
+    payload = {
+    "csv_file_path": "app/data/hired_employees.csv",
+    "schema": {
+        "column_mapping": {
+            "id": 0,
+            "name": 1,
+            "datetime": 2,
+            "department_id": 3,
+            "job_id": 4
+        }
+    },
+    "table_name": "Employee"
+}
+
+    response = client.post('/api/populate_table', json=payload)
+    print(response.data)
+
+    assert response.status_code == 201, "Expected HTTP 201 status code for successful insert."
+    assert response.json.get(
+        'message') == 'Data inserted into table Employee successfully', "Unexpected response message."
