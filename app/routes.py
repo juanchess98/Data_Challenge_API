@@ -81,5 +81,33 @@ def employee_metrics():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-    
+
+@main_bp.route('/top_departments', methods=['GET'])
+def top_departments():
+    try:
+        # Calculate number of employees by department in 2021
+        employees_by_department = db.session.query(
+                                    Department.department,
+                                    func.count(Employee.id).label('number_hired_employees')) \
+                                    .join(Employee).filter(Employee.datetime.like('2021%')) \
+                                    .group_by(Department.department)
+        #Calculate the mean of above data
+        overall_mean = db.session.query(func.avg(employees_by_department.subquery().columns.number_hired_employees)).all()[0][0]
+        # Query the departments that hired more employees than the mean
+        data = db.session.query(
+                    Department.id,
+                    Department.department,
+                    func.count(Employee.id).label('hired')) \
+                    .join(Employee).filter(Employee.datetime.like('2021%')).group_by(Department.id) \
+                    .having(func.count(Employee.id) > overall_mean) \
+                    .order_by(func.count(Employee.id).desc()) \
+                    .all()
+
+        result = [{'id': d.id, 'department': d.department, 'hired': d.hired} for d in data]
+
+        return render_template('top_departments.html', departments=result)
+
+    except Exception as e:
+        print(e)
+        return jsonify({'error': str(e)}), 500
 
