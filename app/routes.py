@@ -1,7 +1,10 @@
-from flask import jsonify, Blueprint, request
+from flask import jsonify, Blueprint, request, render_template
 from app.models import Employee, Department, Job
 import csv
-from app import upload_to_db
+from app import upload_to_db, db
+from sqlalchemy import func, and_, extract
+
+
 main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 def index():
@@ -55,6 +58,27 @@ def populate_table():
 
         return jsonify({'message': f'Data inserted into table {table_name} successfully'}), 201
 
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@main_bp.route('/employee_by_quarter', methods=['GET'])
+def employee_metrics():
+    try:
+        # Query the database to get the number of employees hired for each job and department in 2021 divided by quarter
+        data = db.session.query(
+                        Department.department,
+                        Job.job,
+                        func.sum(db.case([(extract('month', Employee.datetime).between(1, 3), 1)], else_=0)).label('Q1'),
+                        func.sum(db.case([(extract('month', Employee.datetime).between(4, 6), 1)], else_=0)).label('Q2'),
+                        func.sum(db.case([(extract('month', Employee.datetime).between(7, 9), 1)], else_=0)).label('Q3'),
+                        func.sum(db.case([(extract('month', Employee.datetime).between(10, 12), 1)], else_=0)).label('Q4')
+                        ).select_from(Employee).filter(extract('year', Employee.datetime) == 2021).join(Department).join(Job).group_by(Department.department, Job.job).all()
+
+        # Convert the data to a list of dictionaries
+        result = [{'department': d.department, 'job': d.job, 'Q1': d.Q1, 'Q2': d.Q2, 'Q3': d.Q3, 'Q4': d.Q4} for d in data]
+
+        return render_template('employees_by_quarter.html', data = result)
+        
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
