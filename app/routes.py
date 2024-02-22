@@ -17,7 +17,7 @@ def get_departments():
 @main_bp.route('/employees', methods=['GET'])
 def get_employees():
     employees = Employee.query.all()
-    employees_list = [{'id': employee.id, 'name': employee.name, 'datetime': employee.hired_date, 'department_id': employee.department_id, 'job_id': employee.job_id} for employee in employees]
+    employees_list = [{'id': employee.id, 'name': employee.name, 'datetime': employee.datetime, 'department_id': employee.department_id, 'job_id': employee.job_id} for employee in employees]
     return jsonify({'employees': employees_list}), 200
 
 

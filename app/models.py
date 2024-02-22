@@ -4,7 +4,7 @@ from app import db
 class Employee(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False)
-    hired_date = db.Column(db.String(128), nullable=False)
+    datetime = db.Column(db.String(128), nullable=False)
     department_id = db.Column(db.Integer, db.ForeignKey('Departments.id'), nullable=False)
     job_id = db.Column(db.Integer, db.ForeignKey('Jobs.id'), nullable=False)
 
